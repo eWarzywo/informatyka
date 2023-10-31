@@ -1,5 +1,5 @@
 import random
-price = round(random.uniform(1, 100), 2)
+price = round(random.uniform(1, 1000), 2)
 
 print("The price is: " + str(price))
 
@@ -21,6 +21,6 @@ else:
                 change -= bills[i]
                 bills_counter[i] += 1
     # print(bills_counter)
-for i in range(len(bills)):
-    if bills_counter[i] > 0:
-        print("Give " + str(bills_counter[i]) + " x " + str(bills[i]))
+    for i in range(len(bills)):
+        if bills_counter[i] > 0:
+            print("Give " + str(bills_counter[i]) + " x " + str(bills[i]))
