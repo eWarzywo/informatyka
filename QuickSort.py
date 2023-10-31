@@ -1,5 +1,5 @@
 def Divide(T,p,r):
-    q = (p+r) // 2
+    q = p + (r-p) // 2
     x = T[q]
     d = T[q]
     T[q] = T[r]
