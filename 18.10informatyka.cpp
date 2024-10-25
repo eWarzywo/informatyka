@@ -54,21 +54,22 @@ public:
 class Generate : File 
 {
 private:
-	int size;
+	int height;
+	int width;
 	int StartX;
 	int EndX;
 	vector<vector<char>> labyrinth;
 
 	void initializeLabyrinth() 
 	{
-		labyrinth.resize(size, vector<char>(size, wall));
+		labyrinth.resize(height, vector<char>(width, wall));
 	}
 
-	void carvePath(int x, int y) 
+	void carvePath(int x, int y) //przy prostakatnych wymiarach nie zawsze tworzy ścieżkę która da sie przejść, co dodaje trochę trudności
 	{
 		stack<pair<int, int>> stack;
 		stack.push({ x, y });
-		labyrinth[y][x] = 'z';
+		labyrinth[y][x] = blankSpace;
 
 		vector<pair<int, int>> directions = { {0, 1}, {1, 0}, {0, -1}, {-1, 0} };
 		while (!stack.empty()) 
@@ -84,7 +85,7 @@ private:
 				int dy = direction.second;
 				int nx = cx + dx * 2;
 				int ny = cy + dy * 2;
-				if (nx >= 0 && nx < size && ny >= 0 && ny < size && labyrinth[ny][nx] == wall) 
+				if (nx >= 0 && nx < width && ny >= 0 && ny < height && labyrinth[ny][nx] == wall) 
 				{
 					validDirections.push_back({ dx, dy });
 				}
@@ -107,19 +108,23 @@ private:
 	}
 
 public:
-	Generate(int size) 
+	Generate(int height, int width) 
 	{
 		srand(time(NULL));
-		this->size = size;
-		this->StartX = (rand() % (size - 1));
-		this->EndX = (rand() % (size - 1));
+		this->height = height;
+		this->width = width;
+		this->StartX = (rand() % (width - 1));
+		this->EndX = (rand() % (width - 1));
 		initializeLabyrinth();
 		cout << "StartX: " << StartX << endl;
 		cout << "EndX: " << EndX << endl;
 	}
 
-	int getSize() 
+	int * getSize() 
 	{
+		int* size = new int[2];
+		size[0] = height;
+		size[1] = width;
 		return size;
 	}
 
@@ -128,7 +133,7 @@ public:
 		srand(time(NULL));
 		initializeLabyrinth();
 		labyrinth[0][StartX] = start; // Ustawienie punktu startowego
-		labyrinth[size - 1][EndX] = finish; // Ustawienie punktu końcowego
+		labyrinth[height - 1][EndX] = finish; // Ustawienie punktu końcowego
 
 		// Carve a complex path
 		carvePath(StartX, 0);
@@ -136,7 +141,7 @@ public:
 		// Sprawdzenie, czy punkt startowy nie został nadpisany
 		if (labyrinth[0][StartX] != start) 
 		{
-			cout << "Punkt startowy został nadpisany!" << endl;
+			cout << "Punkt startowy zostal nadpisany!" << endl;
 			labyrinth[0][StartX] = start;
 		}
 
@@ -144,9 +149,9 @@ public:
 		file.open(filename);
 		if (file.is_open()) 
 		{
-			for (int i = 0; i < size; i++) 
+			for (int i = 0; i < height; i++) 
 			{
-				for (int j = 0; j < size; j++) 
+				for (int j = 0; j < width; j++) 
 				{
 					file << labyrinth[i][j];
 				}
@@ -159,45 +164,31 @@ public:
 			cout << "Plik nie zostal otwarty" << endl;
 		}
 	}
-	void print() const 
-	{
-		for (const auto& row : labyrinth) 
-		{
-			for (char cell : row) 
-			{
-				cout << cell;
-			}
-			cout << endl;
-		}
-	}
-
-	const vector<vector<char>>& getLabyrinth() const 
-	{
-		return labyrinth;
-	}
 };
 class Labyrinth : File
 {
 private:
-	int size;
+	int height;
+	int width;
 	char** labyrinth;
 public:
 	int numberOfSteps{ 0 }; // zmienna do testow
 	int startX{ 0 };
 	int startY{ 0 };
 
-	Labyrinth(int size) //mapa labiryntu jest kwadratowa
+	Labyrinth(int height, int width) //mapa labiryntu jest prostokatna
 	{
-		this->size = size;
-		labyrinth = new char* [size];
-		for (int i = 0; i < size; i++)
+		this->height = height;
+		this->width = width;
+		labyrinth = new char* [height];
+		for (int i = 0; i < height; i++)
 		{
-			labyrinth[i] = new char[size];
+			labyrinth[i] = new char[width];
 		}
 	}
 	~Labyrinth()
 	{
-		for (int i = 0; i < size; i++)
+		for (int i = 0; i < height; i++)
 		{
 			delete[] labyrinth[i];
 		}
@@ -206,9 +197,9 @@ public:
 	void loadFromFile(string filename)
 	{
 		openFile(filename);
-		for (int i = 0; i < size; i++)
+		for (int i = 0; i < height; i++)
 		{
-			for (int j = 0; j < size; j++)
+			for (int j = 0; j < width; j++)
 			{
 				getFile() >> labyrinth[i][j];
 			}
@@ -217,9 +208,9 @@ public:
 	}
 	void print()
 	{
-		for (int i = 0; i < size; i++)
+		for (int i = 0; i < height; i++)
 		{
-			for (int j = 0; j < size; j++)
+			for (int j = 0; j < width; j++)
 			{
 				cout << labyrinth[i][j];
 			}
@@ -231,7 +222,7 @@ public:
 		numberOfSteps++;
 		/*print();*/ // do testow po kolei wypisuje kazdy krok
 		/*cout << endl;*/
-		if (x < 0 || x >= size || y < 0 || y >= size) // sprawdzamy czy nie wychodzimy poza labirynt
+		if (x < 0 || x >= height || y < 0 || y >= width) // sprawdzamy czy nie wychodzimy poza labirynt
 		{
 			return false;
 		}
@@ -265,9 +256,9 @@ public:
 	}
 	void findStart()
 	{
-		for (int i = 0; i < size; i++)
+		for (int i = 0; i < height; i++)
 		{
-			for (int j = 0; j < size; j++)
+			for (int j = 0; j < width; j++)
 			{
 				if (labyrinth[i][j] == start)
 				{
@@ -281,26 +272,43 @@ public:
 };
 int main()
 {
-	//Labyrinth labyrinth(10);
-	//labyrinth.loadFromFile("map.txt");
-	//labyrinth.print();
-	//labyrinth.findStart();
-	//if (labyrinth.findPath(labyrinth.startX, labyrinth.startY) == true)
-	//{
-	//	cout << "Znaleziono wyjscie" << endl;
-	//}
-	//else
-	//{
-	//	cout << "Nie znaleziono wyjscia" << endl;
-	//}
-	//cout << "Liczba krokow: " << labyrinth.numberOfSteps << endl;
+	int height{ 20 };
+	int width{ 60 };
 
-	Generate generate(20);
+	bool interface = 1;
+	int answer;
+	while (interface) 
+	{
+		cout << "Witaj w labiryntach!" << endl;
+		cout << "1. Aby uruchomic program deafultowo (20x60) (sciany - #, przejscia - . , start - S, meta - T) " << endl;
+		cout << "2. Aby wygenerowac labirynt o podanych wymiarach" << endl;
+
+		cin >> answer;
+
+		if (answer == 1)
+		{
+			interface = 0;
+		}
+		else if (answer == 2) 
+		{
+			cout << "Podaj wysokosc labiryntu: ";
+			cin >> height;
+			cout << "Podaj szerokosc labiryntu: ";
+			cin >> width;
+			interface = 0;
+		}
+		else
+		{
+			cout << "Niepoprawna odpowiedz" << endl;
+		}
+	}
+
+	Generate generate(height,width);
 	generate.generateMap("mapa.txt");
-	int sizeOfGeneratedMap = generate.getSize();
+	int * sizeOfGeneratedMap = generate.getSize();
 
 
-	Labyrinth generatedLabyrinth(sizeOfGeneratedMap);
+	Labyrinth generatedLabyrinth(sizeOfGeneratedMap[0],sizeOfGeneratedMap[1]);
 	generatedLabyrinth.loadFromFile("mapa.txt");
 	generatedLabyrinth.print();
 	generatedLabyrinth.findStart();
